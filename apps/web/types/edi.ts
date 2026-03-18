@@ -7,14 +7,20 @@ export type Segment = {
 
 export type LoopNode = {
   loop: string;
+  hl_id?: string;
+  parent_id?: string;
   segments: Segment[];
   children: LoopNode[];
 };
 
 export type ParseResult = {
   transaction_type: string;
+  type: string;
+  sender: string;
+  receiver: string;
+  date: string;
   segments: Segment[];
-  loops: LoopNode;
+  loops: LoopNode[];
   metadata: Record<string, unknown>;
 };
 
@@ -24,7 +30,12 @@ export type ValidationIssue = {
   message: string;
   loop?: string;
   segment?: string;
+  element?: string;
   element_position?: number;
+  value?: string | null;
+  error?: string;
+  explanation?: string;
+  suggestion?: string;
   fix_suggestion?: string;
 };
 
