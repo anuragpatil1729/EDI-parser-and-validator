@@ -7,10 +7,10 @@ import SegmentTree from "@/components/tree/SegmentTree";
 import AIChatPanel from "@/components/chat/AIChatPanel";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { TabPanel, Tabs } from "@/components/ui/Tabs";
-import { validateEdi } from "@/lib/api";
-import { LoopNode, ParseResult, Segment, ValidationIssue, ValidationResult } from "@/types/edi";
+import { translateEdi, validateEdi } from "@/lib/api";
+import { LoopNode, ParseResult, Segment, TranslationResult, ValidationIssue, ValidationResult } from "@/types/edi";
 
-type ViewerTab = "tree" | "errors" | "ai";
+type ViewerTab = "tree" | "errors" | "ai" | "translation";
 
 type ClaimRow = {
   claimId: string;
@@ -133,6 +133,9 @@ export default function ViewerPage({ params }: { params: { fileId: string } }) {
   const [selectedIssue, setSelectedIssue] = useState<ValidationIssue | null>(null);
   const [activeTab, setActiveTab] = useState<ViewerTab>("tree");
   const [fixingIssueKey, setFixingIssueKey] = useState<string | null>(null);
+  const [translation, setTranslation] = useState<TranslationResult | null>(null);
+  const [translationLoading, setTranslationLoading] = useState(false);
+  const [translationError, setTranslationError] = useState<string | null>(null);
 
   useEffect(() => {
     parseAndValidateByFileId(params.fileId);
@@ -145,6 +148,44 @@ export default function ViewerPage({ params }: { params: { fileId: string } }) {
   useEffect(() => {
     setWorkingValidation(validation);
   }, [validation]);
+
+  useEffect(() => {
+    if (activeTab !== "translation") {
+      return;
+    }
+    if (!workingParseResult) {
+      return;
+    }
+    if (translation || translationLoading) {
+      return;
+    }
+
+    let cancelled = false;
+    setTranslationLoading(true);
+    setTranslationError(null);
+
+    (async () => {
+      try {
+        const issues = workingValidation?.issues;
+        const result = await translateEdi(workingParseResult, { issues });
+        if (!cancelled) {
+          setTranslation(result);
+        }
+      } catch (e) {
+        if (!cancelled) {
+          setTranslationError(e instanceof Error ? e.message : "Translation failed");
+        }
+      } finally {
+        if (!cancelled) {
+          setTranslationLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTab, translation, workingParseResult, workingValidation?.issues]);
 
   const onSelectIssue = useCallback((issue: ValidationIssue) => {
     setSelectedIssue(issue);
@@ -168,6 +209,7 @@ export default function ViewerPage({ params }: { params: { fileId: string } }) {
       };
 
       setWorkingParseResult(updatedParseResult);
+      setTranslation(null);
       try {
         const revalidated = await validateEdi(updatedParseResult.transaction_type, updatedParseResult.segments, params.fileId);
         setWorkingValidation(revalidated);
@@ -204,6 +246,7 @@ export default function ViewerPage({ params }: { params: { fileId: string } }) {
                 { key: "tree", label: "Tree" },
                 { key: "errors", label: "Errors", count: issues.length },
                 { key: "ai", label: "AI" },
+                { key: "translation", label: "Translation" },
               ]}
               active={activeTab}
               onChange={setActiveTab}
@@ -224,6 +267,47 @@ export default function ViewerPage({ params }: { params: { fileId: string } }) {
             {activeTab === "ai" ? (
               <TabPanel>
                 <AIChatPanel transactionType={workingParseResult.transaction_type} issues={issues} selectedIssue={selectedIssue} />
+              </TabPanel>
+            ) : null}
+
+            {activeTab === "translation" ? (
+              <TabPanel>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Translation (Narrative)</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    {translationLoading ? <p className="text-sm text-slate-600">Generating narrative…</p> : null}
+                    {translationError ? <p className="text-sm text-red-600">{translationError}</p> : null}
+
+                    {!translationLoading && !translationError && translation ? (
+                      <div className="space-y-3 text-sm text-slate-800">
+                        <p className="text-base font-semibold text-slate-900">
+                          {translation.sections?.overview?.summary || translation.transaction_type || "EDI Transaction"}
+                        </p>
+                        <p className="whitespace-pre-wrap text-slate-700">
+                          {translation.readable_walkthrough ||
+                            (translation.sections?.overview?.sender_to_receiver
+                              ? `Transaction from ${translation.sections.overview.sender_to_receiver} dated ${translation.sections.overview.transaction_date}`
+                              : "Transaction parsed successfully. No narrative available.")}
+                        </p>
+                        {translation.sections?.participants?.provider?.name ? (
+                          <p><strong>Provider:</strong> {translation.sections.participants.provider.name} (NPI: {translation.sections.participants.provider.npi || "N/A"})</p>
+                        ) : null}
+                        {translation.sections?.participants?.payer?.name ? (
+                          <p><strong>Payer:</strong> {translation.sections.participants.payer.name}</p>
+                        ) : null}
+                        {translation.sections?.issues_summary?.total_errors > 0 ? (
+                          <p className="text-red-600"><strong>Errors:</strong> {translation.sections.issues_summary.total_errors} | <strong>Warnings:</strong> {translation.sections.issues_summary.total_warnings}</p>
+                        ) : null}
+                      </div>
+                    ) : null}
+
+                    {!translationLoading && !translationError && !translation ? (
+                      <p className="text-sm text-slate-500">Open this tab to generate a narrative translation.</p>
+                    ) : null}
+                  </CardContent>
+                </Card>
               </TabPanel>
             ) : null}
           </>

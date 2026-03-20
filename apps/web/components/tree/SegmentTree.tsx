@@ -3,8 +3,8 @@ import SegmentNode from "./SegmentNode";
 import { LoopNode, ValidationIssue } from "@/types/edi";
 import Badge from "@/components/ui/Badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import elementDictionaryJson from "../../../../packages/edi-core/element-dictionary.json";
-import segmentDefinitionsJson from "../../../../packages/edi-core/segment-definitions.json";
+import elementDictionaryJson from "@/data/element-dictionary.json";
+import segmentDefinitionsJson from "@/data/segment-definitions.json";
 
 type Severity = "error" | "warning";
 
@@ -79,13 +79,12 @@ function LoopCard({
               <div
                 key={`${segment.id}-${segment.index}`}
                 style={{ marginLeft: `${(depth + 1) * 14}px` }}
-                className={`rounded-lg border p-3 ${
-                  segmentSeverity === "error"
-                    ? "border-red-200 bg-red-50"
-                    : segmentSeverity === "warning"
-                      ? "border-amber-200 bg-amber-50"
-                      : "border-slate-200 bg-slate-50"
-                }`}
+                className={`rounded-lg border p-3 ${segmentSeverity === "error"
+                  ? "border-red-200 bg-red-50"
+                  : segmentSeverity === "warning"
+                    ? "border-amber-200 bg-amber-50"
+                    : "border-slate-200 bg-slate-50"
+                  }`}
               >
                 <div className="mb-2 flex flex-wrap items-center gap-2 text-xs">
                   <span className="text-sm font-semibold text-slate-900">
