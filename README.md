@@ -375,10 +375,10 @@ python scripts/test_parser.py
 
 ## Roadmap
 
-- [ ] 837I (Institutional) specific validation rules
+- [ ] 837I ( Institutional ) specific validation rules
 - [ ] CARC / RARC code lookup in 835 remittance viewer
-- [ ] NPI registry verification against CMS data
-- [ ] ICD-10 and CPT code validity checks
+- [ ] NPI  registry verification against CMS data
+- [ ] ICD-10  and CPT code validity checks
 - [ ] Batch processing dashboard for ZIP uploads
 - [ ] Export validated/fixed EDI back to `.edi` file
 
@@ -386,4 +386,4 @@ python scripts/test_parser.py
 
 ## License
 
-MIT License © 2026 Anurag Patil — see [LICENSE](LICENSE) for details.
+MIT  License © 2026 Anurag Patil  — see [LICENSE](LICENSE) for details.
