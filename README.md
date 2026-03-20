@@ -125,6 +125,16 @@ SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 
 # Gemini AI (optional — falls back to deterministic responses without this)
 GEMINI_API_KEY=your-gemini-api-key
+
+# Ollama (used for translation narratives; self-hosted)
+OLLAMA_URL=http://localhost:11434
+OLLAMA_TRANSLATION_TEACHER_MODEL=llama3
+OLLAMA_MODEL=llama3
+OLLAMA_TEMPERATURE=0.2
+
+# If true, translation endpoint writes pseudo-label training examples
+# to services/ai/app/training/translation_training.jsonl
+TRANSLATION_COLLECT_TRAINING=false
 ```
 
 | Variable | Required | Description |
@@ -133,6 +143,11 @@ GEMINI_API_KEY=your-gemini-api-key
 | `SUPABASE_URL` | No | Supabase project URL for persistent storage |
 | `SUPABASE_SERVICE_ROLE_KEY` | No | Supabase service role key (bypasses RLS) |
 | `GEMINI_API_KEY` | No | Google Gemini API key for AI explanations |
+| `OLLAMA_URL` | No | Ollama base URL used for translation |
+| `OLLAMA_TRANSLATION_TEACHER_MODEL` | No | Ollama model name used for translation targets (teacher) |
+| `OLLAMA_MODEL` | No | Fallback Ollama model name |
+| `OLLAMA_TEMPERATURE` | No | Temperature for Ollama generation |
+| `TRANSLATION_COLLECT_TRAINING` | No | Write pseudo-label translation examples to disk |
 
 **Where to get keys:**
 - Supabase: Dashboard → Project Settings → API Keys
@@ -223,6 +238,24 @@ Content-Type: application/json
 Body: { "transaction_type": "837", "segments": [...], "fileId": "uuid" }
 
 Response: { is_valid, issues[], summary: { total, errors, warnings } }
+```
+
+### Translate (Narrative)
+```
+POST /translate
+Content-Type: application/json
+Body: {
+  "transaction_type": "837|835|834",
+  "parsed": { /* ParseResult */ },
+  "issues": [ /* optional ValidationIssue[] */ ]
+}
+
+Response: {
+  "transaction_type": "...",
+  "sections": { "overview": {...}, "participants": {...}, "details": {...}, ... },
+  "readable_walkthrough": "string",
+  "issues_summary": { /* optional */ }
+}
 ```
 
 ### AI Chat
