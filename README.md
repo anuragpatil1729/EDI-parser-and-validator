@@ -154,7 +154,7 @@ TRANSLATION_COLLECT_TRAINING=false
 
 ---
 
-## Supabase Setup (Optional)
+## Supabase Setup
 
 To persist uploads and results across container restarts, run these queries in your Supabase SQL Editor:
 
