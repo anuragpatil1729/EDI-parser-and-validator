@@ -9,6 +9,8 @@ services:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://localhost:4000
+      - NEXT_PUBLIC_SUPABASE_URL=https://lxhiklnblnflkcqibdpf.supabase.co
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx4aGlrbG5ibG5mbGtjcWliZHBmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM4MzA5MDAsImV4cCI6MjA4OTQwNjkwMH0.D7_kZLQYpbyGEqaWjTTL8uHSQS8kcbriSDdY9ZAgw5Y
     depends_on:
       - api
 
@@ -25,6 +27,8 @@ services:
       - PARSER_URL=http://parser:8001
       - VALIDATOR_URL=http://validator:8002
       - AI_URL=http://ai:8003
+      - SUPABASE_URL=https://lxhiklnblnflkcqibdpf.supabase.co
+      - SUPABASE_SERVICE_ROLE_KEY=sb_secret_6EDwScpQAo9R2itx1quahQ_wsUvbeMg
     depends_on:
       - parser
       - validator
